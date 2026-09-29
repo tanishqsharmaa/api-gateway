@@ -50,4 +50,18 @@ def test_sse_streaming_config():
     assert "proxy_set_header Connection '';" in content
     assert "proxy_http_version 1.1;" in content
 
+def test_unified_nginx_conf():
+    conf_path = Path("config/nginx/nginx.conf")
+    assert conf_path.exists(), "nginx.conf missing"
+    content = conf_path.read_text(encoding="utf-8")
+    assert "upstream orchestrator_backend" in content
+    assert "upstream ingestion_backend" in content
+    assert "location /health" in content
+    assert "location /healthz" in content
+    assert "location /query" in content
+    assert "location /query/stream" in content
+    assert "location /ingest/run" in content
+    assert "location ~ ^/ingest/status/(.*)$" in content
+
+
 

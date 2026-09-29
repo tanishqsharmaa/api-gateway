@@ -1,0 +1,59 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: warden-ingress
+  namespace: warden-apps
+  labels:
+    app.kubernetes.io/name: warden-ingress
+    app.kubernetes.io/part-of: project-warden
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/limit-rps: "5"
+    nginx.ingress.kubernetes.io/limit-burst-multiplier: "2"
+    nginx.ingress.kubernetes.io/proxy-body-size: "25m"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      if ($http_x_user_role = "") {
+        return 401 '{"type":"https://warden.enterprise/errors/auth-role-missing","title":"Unauthorized","status":401,"detail":"Mandatory X-User-Role header is missing","instance":"$request_uri","error_code":"ERR_AUTH_ROLE_MISSING","timestamp":"2026-09-28T00:00:00Z"}';
+      }
+      if ($http_x_user_role !~* ^(Employee|Manager|HR-Admin)$) {
+        return 403 '{"type":"https://warden.enterprise/errors/auth-role-invalid","title":"Forbidden","status":403,"detail":"Invalid X-User-Role specified","instance":"$request_uri","error_code":"ERR_AUTH_ROLE_INVALID","timestamp":"2026-09-28T00:00:00Z"}';
+      }
+spec:
+  tls:
+  - hosts:
+    - warden.enterprise.internal
+    secretName: warden-tls-secret
+  rules:
+  - host: warden.enterprise.internal
+    http:
+      paths:
+      - path: /query/stream
+        pathType: Exact
+        backend:
+          service:
+            name: warden-orchestrator
+            port:
+              number: 8000
+      - path: /query
+        pathType: Exact
+        backend:
+          service:
+            name: warden-orchestrator
+            port:
+              number: 8000
+      - path: /ingest
+        pathType: Prefix
+        backend:
+          service:
+            name: warden-ingestion
+            port:
+              number: 8000
+      - path: /health
+        pathType: Exact
+        backend:
+          service:
+            name: warden-orchestrator
+            port:
+              number: 8000

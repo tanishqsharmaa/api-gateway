@@ -19,3 +19,20 @@ def test_cert_issuer_manifest_exists_and_valid():
     assert issuer["kind"] == "ClusterIssuer"
     assert issuer["metadata"]["name"] == "letsencrypt-prod"
     assert "acme" in issuer["spec"]
+
+def test_kubernetes_ingress_manifest():
+    ingress_path = Path("k8s/ingress/warden-ingress.yaml")
+    assert ingress_path.exists(), "warden-ingress.yaml missing"
+    doc = yaml.safe_load(ingress_path.read_text(encoding="utf-8"))
+    assert doc["kind"] == "Ingress"
+    assert doc["metadata"]["name"] == "warden-ingress"
+    annotations = doc["metadata"]["annotations"]
+    assert annotations.get("kubernetes.io/ingress.class") == "nginx"
+    assert "nginx.ingress.kubernetes.io/limit-rps" in annotations
+    rules = doc["spec"]["rules"][0]["http"]["paths"]
+    paths = [p["path"] for p in rules]
+    assert "/query/stream" in paths
+    assert "/query" in paths
+    assert "/ingest" in paths
+    assert "/health" in paths
+
