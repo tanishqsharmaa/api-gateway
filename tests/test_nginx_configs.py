@@ -38,3 +38,16 @@ def test_rate_limiting_config():
     assert "limit_req_status 429;" in content
     assert "limit_req zone=warden_ip_limit burst=10 nodelay;" in content
 
+def test_sse_streaming_config():
+    sse_conf = Path("config/nginx/sse-streaming.conf")
+    assert sse_conf.exists(), "sse-streaming.conf missing"
+    content = sse_conf.read_text(encoding="utf-8")
+    assert "proxy_buffering off;" in content
+    assert "proxy_cache off;" in content
+    assert "chunked_transfer_encoding off;" in content
+    assert "proxy_read_timeout 300s;" in content
+    assert "proxy_send_timeout 300s;" in content
+    assert "proxy_set_header Connection '';" in content
+    assert "proxy_http_version 1.1;" in content
+
+
