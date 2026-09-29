@@ -29,3 +29,12 @@ def test_error_pages_configmap():
     assert p401["status"] == 401
     assert p401["error_code"] == "ERR_AUTH_ROLE_MISSING"
     assert "title" in p401 and "type" in p401
+
+def test_rate_limiting_config():
+    rate_conf = Path("config/nginx/rate-limiting.conf")
+    assert rate_conf.exists(), "rate-limiting.conf missing"
+    content = rate_conf.read_text(encoding="utf-8")
+    assert "limit_req_zone $binary_remote_addr zone=warden_ip_limit:10m rate=50r/m;" in content
+    assert "limit_req_status 429;" in content
+    assert "limit_req zone=warden_ip_limit burst=10 nodelay;" in content
+
