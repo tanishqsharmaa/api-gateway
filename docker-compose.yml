@@ -1,0 +1,22 @@
+version: '3.8'
+
+networks:
+  warden-net:
+    driver: bridge
+
+services:
+  api-gateway:
+    image: nginx:1.25.4-alpine
+    container_name: warden-api-gateway
+    networks:
+      - warden-net
+    ports:
+      - "8080:80"
+    volumes:
+      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:80/healthz || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped

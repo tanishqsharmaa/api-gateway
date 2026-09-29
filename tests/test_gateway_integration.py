@@ -1,6 +1,6 @@
-from pathlib import Path
 import json
-import pytest
+from pathlib import Path
+
 
 def test_verification_script_exists_and_valid():
     script_path = Path("scripts/verify_gateway_proxy.sh")

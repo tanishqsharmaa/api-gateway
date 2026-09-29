@@ -1,6 +1,8 @@
-from pathlib import Path
 import json
+from pathlib import Path
+
 import yaml
+
 
 def test_auth_role_validation_snippet():
     snippet_path = Path("config/nginx/auth-role-validation.conf")
