@@ -1,8 +1,10 @@
 /.agents
 /.agent
 /.venv
+/docs
 __pycache__/
 *.pyc
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
+
