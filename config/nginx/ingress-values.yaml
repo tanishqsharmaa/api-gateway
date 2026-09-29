@@ -1,0 +1,63 @@
+# config/nginx/ingress-values.yaml
+# Production Helm values for ingress-nginx controller in Project Warden
+controller:
+  name: controller
+  image:
+    registry: registry.k8s.io
+    image: ingress-nginx/controller
+    tag: "v1.10.0"
+  replicaCount: 2
+  minAvailable: 1
+  service:
+    enabled: true
+    type: LoadBalancer
+    ports:
+      http: 80
+      https: 443
+    targetPorts:
+      http: http
+      https: https
+  config:
+    ssl-protocols: "TLSv1.3"
+    ssl-ciphers: "ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384"
+    ssl-session-cache: "true"
+    ssl-session-cache-size: "10m"
+    ssl-session-tickets: "true"
+    ssl-session-timeout: "10m"
+    ssl-redirect: "true"
+    force-ssl-redirect: "true"
+    hsts: "true"
+    hsts-max-age: "31536000"
+    hsts-include-subdomains: "true"
+    use-proxy-protocol: "false"
+    use-forwarded-headers: "true"
+    compute-full-forwarded-for: "true"
+    log-format-escape-json: "true"
+    log-format-upstream: '{"timestamp":"$time_iso8601","remote_addr":"$remote_addr","x_forward_for":"$proxy_add_x_forwarded_for","request_id":"$req_id","remote_user":"$remote_user","bytes_sent":$bytes_sent,"request_time":$request_time,"status":$status,"vhost":"$host","request_proto":"$server_protocol","path":"$uri","request_query":"$args","request_length":$request_length,"duration":$request_time,"method":"$request_method","http_referrer":"$http_referer","http_user_agent":"$http_user_agent","user_role":"$http_x_user_role","upstream_addr":"$upstream_addr","upstream_status":"$upstream_status","upstream_response_time":"$upstream_response_time"}'
+    proxy-connect-timeout: "5"
+    proxy-read-timeout: "60"
+    proxy-send-timeout: "60"
+    proxy-body-size: "25m"
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: false
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+            - key: app.kubernetes.io/name
+              operator: In
+              values:
+              - ingress-nginx
+          topologyKey: kubernetes.io/hostname
